@@ -69,6 +69,32 @@ void setup() {
 }
 
 void loop() {
+	blink();
+	if (frontOn() == true) {
+		if (front_low_enable == true) {
+			digitalWrite(FRONT_LOW_ENABLE, HIGH);
+			digitalWrite(FRONT_HIGH_ENABLE, LOW);
+		} else {
+			digitalWrite(FRONT_LOW_ENABLE, LOW);
+			digitalWrite(FRONT_HIGH_ENABLE, HIGH);
+		}
+	} else if (stroboOn() == true) {
+		strobo();
+	} else {
+		digitalWrite(FRONT_LOW_ENABLE, LOW);
+		digitalWrite(FRONT_HIGH_ENABLE, LOW);
+	}
+	if (breakOn() == true) {
+		digitalWrite(REAR_INTENSITY, HIGH);
+	} else {
+		digitalWrite(REAR_INTENSITY, LOW);
+	}
+	if (rearOn() == true) {
+		digitalWrite(REAR_ENABLE, HIGH);
+	} else {
+		digitalWrite(REAR_ENABLE, LOW);
+	}
+	delay(16);
 }
 
 // Vrací true, pokud je sepnutý spínač předního světla
@@ -107,6 +133,7 @@ void blink() {
 
 // blikání strobo
 void strobo() {
+	digitalWrite(FRONT_LOW_ENABLE, LOW);
 	if (strobo_count <= STROBO_ON) {
 		digitalWrite(FRONT_HIGH_ENABLE, HIGH);
 	} else {

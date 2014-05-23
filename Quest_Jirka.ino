@@ -6,6 +6,9 @@ Matěj Novotný
 Určeno pro Arduino Micro
 */
 
+#include <avr/sleep.h>
+#include <avr/wdt.h>
+
 // enable pin potkávacího světla
 #define FRONT_LOW_ENABLE 0
 // měřící pin k potkávacímu světlu
@@ -71,6 +74,9 @@ void setup() {
 	pinMode(FRONT_BUTTON, INPUT_PULLUP);
 	pinMode(BACK_SWITCH, INPUT_PULLUP);
 	pinMode(BREAK_SWITCH, INPUT_PULLUP);
+	
+	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+	WDT_init();
 }
 
 void loop() {
@@ -100,7 +106,7 @@ void loop() {
 	} else {
 		digitalWrite(REAR_ENABLE, LOW);
 	}
-	delay(16);
+	enterSleep();
 }
 
 // Vrací true, pokud je sepnutý spínač předního světla
@@ -163,4 +169,33 @@ void debounceFront() {
 	} else {
 		debounce_count = 0;
 	}
+}
+
+
+// spánek
+void enterSleep(void) {
+	cli();
+	sleep_enable();
+	sei();
+	sleep_cpu();
+	sleep_disable();
+}
+
+
+// přerušení watchdogu
+ISR(WDT_vect) {
+	WDTCSR |= (1<<WDIE);
+}
+
+// inicializace watchdogu
+void WDT_init(void) {
+	//disable interrupts
+	cli();
+	//reset watchdog
+	wdt_reset();
+	//set up WDT interrupt
+	//start watchdog timer with 16ms delay
+	WDTCSR = (1<<WDCE)|(1<<WDIE)|(1<<WDE);
+	//enable global interrupts
+	sei();
 }

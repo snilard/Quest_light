@@ -70,3 +70,23 @@ void setup() {
 
 void loop() {
 }
+
+// Vrací true, pokud je sepnutý spínač předního světla
+boolean frontOn() {
+	return digitalRead(FRONT_SWITCH) == LOW;
+}
+
+// Vrací true, pokud je sepnutý spínač pro strobo
+boolean stroboOn() {
+	return digitalRead(STROBO_SWITCH) == LOW;
+}
+
+// Vrací true, pokud je sepnutý spínač zadního světla
+boolean rearOn() {
+	return digitalRead(BACK_SWITCH) == LOW;
+}
+
+// Vrací true, pokud je sepnutý spínač brzdy
+boolean breakOn() {
+	return digitalRead(BREAK_SWITCH) == LOW;
+}

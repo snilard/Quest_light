@@ -44,6 +44,8 @@ Určeno pro Arduino Micro
 #define STROBO_ON 3
 // počet intervalů, kdy se resetuje čítač pro strobo
 #define STROBO_TOP 12
+// počet intervalů po kolika se bere tlačítko jako sepnuté
+#define DEBOUNCE_TOP 3
 
 
 // čítač blinkrů
@@ -51,6 +53,9 @@ byte blink_count = 0;
 
 // čítač pro strobo
 byte strobo_count = 0;
+
+// čítač pro debouncing
+byte debounce_count = 0;
 
 // true, pokud má svítit potkávačka, false pokud dálkové
 boolean front_low_enable = true;
@@ -70,6 +75,7 @@ void setup() {
 
 void loop() {
 	blink();
+	debounceFront();
 	if (frontOn() == true) {
 		if (front_low_enable == true) {
 			digitalWrite(FRONT_LOW_ENABLE, HIGH);
@@ -143,4 +149,18 @@ void strobo() {
 		}
 	}
 	strobo_count++;
+}
+
+// debouncing tlačítka a přepínání potkávací/dálkové
+void debounceFront() {
+	if (digitalRead(FRONT_BUTTON) == LOW) {
+		debounce_count++;
+		if (debounce_count == DEBOUNCE_TOP) {
+			front_low_enable = !front_low_enable;
+		} else if (debounce_count > 100) {
+			debounce_count = 100;
+		}
+	} else {
+		debounce_count = 0;
+	}
 }

@@ -90,3 +90,30 @@ boolean rearOn() {
 boolean breakOn() {
 	return digitalRead(BREAK_SWITCH) == LOW;
 }
+
+
+// blikání blinkrů
+void blink() {
+	if (blink_count <= BLINK_ON) {
+		digitalWrite(BLINK_PIN, HIGH);
+	} else {
+		digitalWrite(BLINK_PIN, LOW);
+		if (blink_count >= BLINK_TOP) {
+			blink_count = 0;
+		}
+	}
+	blink_count++;
+}
+
+// blikání strobo
+void strobo() {
+	if (strobo_count <= STROBO_ON) {
+		digitalWrite(FRONT_HIGH_ENABLE, HIGH);
+	} else {
+		digitalWrite(FRONT_HIGH_ENABLE, LOW);
+		if (strobo_count >= STROBO_TOP) {
+			strobo_count = 0;
+		}
+	}
+	strobo_count++;
+}

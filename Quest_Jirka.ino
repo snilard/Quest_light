@@ -170,11 +170,15 @@ void loop() {
 		}
 	} else if (stroboOn() == true) {
 		strobo();
+		// přední světla se automaticky vždy zapnou do potkávaček
+		front_low_enable = true;
 	} else {
 		digitalWrite(FRONT_LOW_ENABLE, LOW);
 		digitalWrite(FRONT_HIGH_ENABLE, LOW);
 		front_low_on = false;
 		front_high_on = false;
+		// přední světla se automaticky vždy zapnou do potkávaček
+		front_low_enable = true;
 	}
 	if (breakOn() == true) {
 		digitalWrite(REAR_INTENSITY, HIGH);

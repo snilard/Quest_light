@@ -214,7 +214,7 @@ void loop() {
 	} else {
 		digitalWrite(REAR_INTENSITY, LOW);
 	}
-	if (rearOn() == true) {
+	if ((rearOn() == true) || (breakOn() == true)) {
 		digitalWrite(REAR_ENABLE, HIGH);
 		rear_on = true;
 	} else {

@@ -6243,7 +6243,7 @@ diameter 2.54 mm, horizontal, grid 10.16 mm</description>
 <part name="STROBO1" library="switch" deviceset="TL36PO" device=""/>
 <part name="D1" library="diode" deviceset="1N4728" device=""/>
 <part name="D2" library="diode" deviceset="1N4728" device=""/>
-<part name="R27" library="rcl" deviceset="R-EU_" device="0309/10" value="150"/>
+<part name="R27" library="rcl" deviceset="R-EU_" device="0309/10" value="100k"/>
 <part name="GND22" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>

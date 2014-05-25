@@ -110,7 +110,7 @@ void setup() {
 	pinMode(LED_4, OUTPUT);
 	
 #ifndef DEBUG
-	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+	set_sleep_mode(SLEEP_MODE_STANDBY);
 	WDT_init();
 #endif
 	analogReference(INTERNAL);

@@ -160,8 +160,6 @@ void loop() {
 		} else {
 			error_front_high = false;
 		}
-	} else {
-		error_front_high = false;
 	}
 	if (rear_on == true) {
 		if (lightFault(REAR_MEASURE) == true) {
@@ -177,9 +175,12 @@ void loop() {
 		// pokud už žádné ze světel namá chybu, není už potřeba chybu zobrazovat
 		if ((error_front_low == false) && (error_front_high == false) && (error_rear == false)) {
 			error = false;
-		} else {
-			showError();
 		}
+	}
+	if (error == true) {
+		showError();
+	} else {
+		noLEDs();
 	}
 	if (frontOn() == true) {
 		debounceFront();
@@ -188,6 +189,7 @@ void loop() {
 			digitalWrite(FRONT_HIGH_ENABLE, LOW);
 			front_low_on = true;
 			front_high_on = false;
+			error_front_high = false;
 		} else {
 			digitalWrite(FRONT_LOW_ENABLE, LOW);
 			digitalWrite(FRONT_HIGH_ENABLE, HIGH);
@@ -205,6 +207,7 @@ void loop() {
 		front_high_on = false;
 		// přední světla se automaticky vždy zapnou do potkávaček
 		front_low_enable = true;
+		error_front_high = false;
 	}
 	if (breakOn() == true) {
 		digitalWrite(REAR_INTENSITY, HIGH);

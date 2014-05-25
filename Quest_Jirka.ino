@@ -115,6 +115,9 @@ void loop() {
 	// celé ošetření chyb by se dalo napsat pomocí jedné 8-mi bitové proměnné a bitových operací
 	// a bylo by to výrazně efektivnější, ale takhle pomocí těch booleanů mi to přijde takové
 	// mnohem pochopitelnější
+	
+	// pokud je světlo puštěné a změří se špatná hodnota, označí se chyba
+	// pokud se naměří správná hodnota nebo je úplně vypnuté, smaže se chyba
 	if (front_low_on == true) {
 		if (lightFault(FRONT_LOW_MEASURE) == true) {
 			error = true;
@@ -122,6 +125,8 @@ void loop() {
 		} else {
 			error_front_low = false;
 		}
+	} else {
+		error_front_low = false;
 	}
 	if (front_high_on == true) {
 		if (lightFault(FRONT_HIGH_MEASURE) == true) {
@@ -130,6 +135,8 @@ void loop() {
 		} else {
 			error_front_high = false;
 		}
+	} else {
+		error_front_high = false;
 	}
 	if (rear_on == true) {
 		if (lightFault(REAR_MEASURE) == true) {
@@ -138,8 +145,11 @@ void loop() {
 		} else {
 			error_rear = false;
 		}
+	} else {
+		error_rear = false;
 	}
 	if (error == true) {
+		// pokud už žádné ze světel namá chybu, není už potřeba chybu zobrazovat
 		if ((error_front_low == false) && (error_front_high == false) && (error_rear == false)) {
 			error = false;
 		} else {

@@ -111,7 +111,6 @@ void setup() {
 
 void loop() {
 	blink();
-	debounceFront();
 	// celé ošetření chyb by se dalo napsat pomocí jedné 8-mi bitové proměnné a bitových operací
 	// a bylo by to výrazně efektivnější, ale takhle pomocí těch booleanů mi to přijde takové
 	// mnohem pochopitelnější
@@ -157,6 +156,7 @@ void loop() {
 		}
 	}
 	if (frontOn() == true) {
+		debounceFront();
 		if (front_low_enable == true) {
 			digitalWrite(FRONT_LOW_ENABLE, HIGH);
 			digitalWrite(FRONT_HIGH_ENABLE, LOW);

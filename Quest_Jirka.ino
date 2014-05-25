@@ -35,7 +35,7 @@ Určeno pro Arduino Micro
 // tlačítko pro přepnutí potkávací/dálkové
 #define FRONT_BUTTON 7
 // spínač zadního světla
-#define BACK_SWITCH 8
+#define REAR_SWITCH 8
 // spínač brzdového/mlhového světla
 #define BREAK_SWITCH 9
 // měřící pin na napětí baterky
@@ -95,7 +95,7 @@ void setup() {
 	pinMode(FRONT_SWITCH, INPUT_PULLUP);
 	pinMode(STROBO_SWITCH, INPUT_PULLUP);
 	pinMode(FRONT_BUTTON, INPUT_PULLUP);
-	pinMode(BACK_SWITCH, INPUT_PULLUP);
+	pinMode(REAR_SWITCH, INPUT_PULLUP);
 	pinMode(BREAK_SWITCH, INPUT_PULLUP);
 	
 #ifndef DEBUG
@@ -212,7 +212,7 @@ boolean stroboOn() {
 
 // Vrací true, pokud je sepnutý spínač zadního světla
 boolean rearOn() {
-	return digitalRead(BACK_SWITCH) == LOW;
+	return digitalRead(REAR_SWITCH) == LOW;
 }
 
 // Vrací true, pokud je sepnutý spínač brzdy

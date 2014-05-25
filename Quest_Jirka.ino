@@ -40,6 +40,12 @@ Určeno pro Arduino Micro
 #define BREAK_SWITCH 9
 // měřící pin na napětí baterky
 #define BATTERY_MEASURE A3
+// informační LED
+#define LED_0 10
+#define LED_1 11
+#define LED_2 12
+#define LED_3 13
+#define LED_4 A4
 
 // počet intervalů, kdy svítí blinkry
 #define BLINK_ON 10
@@ -97,6 +103,11 @@ void setup() {
 	pinMode(FRONT_BUTTON, INPUT_PULLUP);
 	pinMode(REAR_SWITCH, INPUT_PULLUP);
 	pinMode(BREAK_SWITCH, INPUT_PULLUP);
+	pinMode(LED_0, OUTPUT);
+	pinMode(LED_1, OUTPUT);
+	pinMode(LED_2, OUTPUT);
+	pinMode(LED_3, OUTPUT);
+	pinMode(LED_4, OUTPUT);
 	
 #ifndef DEBUG
 	set_sleep_mode(SLEEP_MODE_PWR_DOWN);

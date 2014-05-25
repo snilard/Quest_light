@@ -56,6 +56,18 @@ Určeno pro Arduino Micro
 #define STROBO_ON 3
 // počet intervalů, kdy se resetuje čítač pro strobo
 #define STROBO_TOP 12
+
+// počet intervalu, kdy svítí indikace chyby
+#define ERROR_ON 10
+// počet intervalů, kdy se resetuje čítač pro chybu
+#define ERROR_TOP 20
+// LED na které se zobrazí chyba potkávacího světla
+#define FRONT_LOW_LED LED_0
+// LED na které se zobrazí chyba dálkového světla
+#define FRONT_HIGH_LED LED_1
+// LED na které se zobrazí chyba zadního světla
+#define REAR_LED LED_2
+
 // počet intervalů po kolika se bere tlačítko jako sepnuté
 #define DEBOUNCE_TOP 3
 
@@ -91,6 +103,9 @@ boolean error = false;
 boolean error_front_low = false;
 boolean error_front_high = false;
 boolean error_rear = false;
+
+// čítač pro blikání chyby
+byte error_count = 0;
 
 void setup() {
 	pinMode(FRONT_LOW_ENABLE, OUTPUT);
@@ -356,4 +371,30 @@ void showError() {
 		delay(100);
 	}
 #endif
+	if (error_count <= ERROR_ON) {
+		if (error_front_low == true) {
+			digitalWrite(FRONT_LOW_LED, HIGH);
+		}
+		if (error_front_high == true) {
+			digitalWrite(FRONT_HIGH_LED, HIGH);
+		}
+		if (error_rear == true) {
+			digitalWrite(REAR_LED, HIGH);
+		}
+	} else {
+		noLEDs();
+		if (error_count >= ERROR_TOP) {
+			error_count = 0;
+		}
+	}
+	error_count++;
+}
+
+// vypnutí informačních LED
+void noLEDs() {
+	digitalWrite(LED_0, LOW);
+	digitalWrite(LED_1, LOW);
+	digitalWrite(LED_2, LOW);
+	digitalWrite(LED_3, LOW);
+	digitalWrite(LED_4, LOW);
 }

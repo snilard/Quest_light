@@ -197,7 +197,7 @@ void loop() {
 		} else {
 			error_front_high = false;
 		}
-	}
+	} // pro dálkové se chyba maže jinde, aby to dobře fungovalo se strobo režimem
 	if (rear_on == true) {
 		if (lightFault(REAR_MEASURE) == true) {
 			error = true;
@@ -265,7 +265,7 @@ void loop() {
 	}
 #ifdef DEBUG
 	Serial.flush();
-	delay(100);
+	delay(50);
 #else
 	enterSleep();
 #endif
@@ -322,7 +322,7 @@ void strobo() {
 	strobo_count++;
 }
 
-// debouncing tlačítka a přepínání potkávací/dálkové
+// debouncing tlačítka pro přepínání potkávací/dálkové
 void debounceFront() {
 	if (digitalRead(FRONT_BUTTON) == LOW) {
 		debounce_front_count++;

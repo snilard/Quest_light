@@ -40,6 +40,8 @@ Určeno pro Arduino Micro
 #define BREAK_SWITCH 9
 // měřící pin na napětí baterky
 #define BATTERY_MEASURE A3
+// tlačítko pro zobrazení napětí
+#define BATTERY_BUTTON 12
 // informační LED
 #define LED_0 10
 #define LED_1 11
@@ -67,9 +69,17 @@ Určeno pro Arduino Micro
 #define FRONT_HIGH_LED LED_1
 // LED na které se zobrazí chyba zadního světla
 #define REAR_LED LED_2
+// LED na které se zobrazí slabá baterka
+#define BATTERY_LED LED_3
 
 // počet intervalů po kolika se bere tlačítko jako sepnuté
 #define DEBOUNCE_TOP 3
+
+// počet intervalů, po který se zobrazuje napětí baterky
+#define VOLTAGE_SHOW_TOP 250
+
+// počet intervalů, za jak dlouho se měří napětí baterky
+#define VOLTAGE_MEASURE_TOP 150
 
 // povolené maximum na měřících rezistorech driverů
 // 0,29V / 2,56V * 1024
@@ -77,6 +87,14 @@ Určeno pro Arduino Micro
 // povolené minimum na měřících rezistorech driverů
 // 0,21V / 2,56V * 1024
 #define CURRENT_BUTTOM 84
+
+// jednotlivé úrovně napětí baterky
+// TODO dopsat správné hodnoty
+#define BATTERY_LEVEL_0 100
+#define BATTERY_LEVEL_1 120
+#define BATTERY_LEVEL_2 140
+#define BATTERY_LEVEL_3 160
+#define BATTERY_LEVEL_4 180
 
 
 
@@ -86,8 +104,11 @@ byte blink_count = 0;
 // čítač pro strobo
 byte strobo_count = 0;
 
-// čítač pro debouncing
-byte debounce_count = 0;
+// čítač pro debouncing tlačítka pro přepínání předního světla
+byte debounce_front_count = 0;
+
+// čítač pro debouncing tlačítka na zobrazení napětí
+byte debounce_voltage_count = 0;
 
 // true, pokud má svítit potkávačka, false pokud dálkové
 boolean front_low_enable = true;
@@ -103,9 +124,20 @@ boolean error = false;
 boolean error_front_low = false;
 boolean error_front_high = false;
 boolean error_rear = false;
+// true, pokud má baterka slabé napětí
+boolean error_battery = false;
 
 // čítač pro blikání chyby
 byte error_count = 0;
+
+// napětí baterky
+int voltage = 0;
+
+// čítač pro měření baterky
+byte voltage_measure_count = 0;
+
+// čítač pro zobrazení napětí baterky
+byte voltage_show_count = VOLTAGE_SHOW_TOP; 
 
 void setup() {
 	pinMode(FRONT_LOW_ENABLE, OUTPUT);
@@ -118,6 +150,7 @@ void setup() {
 	pinMode(FRONT_BUTTON, INPUT_PULLUP);
 	pinMode(REAR_SWITCH, INPUT_PULLUP);
 	pinMode(BREAK_SWITCH, INPUT_PULLUP);
+	pinMode(BATTERY_BUTTON, INPUT_PULLUP);
 	pinMode(LED_0, OUTPUT);
 	pinMode(LED_1, OUTPUT);
 	pinMode(LED_2, OUTPUT);
@@ -127,16 +160,20 @@ void setup() {
 #ifndef DEBUG
 	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 	WDT_init();
-#endif
-	analogReference(INTERNAL);
-#ifdef DEBUG
+#else
 	Serial.begin(19200);
 	Serial.println("Init done.");
 #endif
+	
+	analogReference(INTERNAL);
+	voltage_measure_count = VOLTAGE_MEASURE_TOP;
+	measureVoltage();
 }
 
 void loop() {
 	blink();
+	measureVoltage();
+	debounceVoltage();
 	// celé ošetření chyb by se dalo napsat pomocí jedné 8-mi bitové proměnné a bitových operací
 	// a bylo by to výrazně efektivnější, ale takhle pomocí těch booleanů mi to přijde takové
 	// mnohem pochopitelnější
@@ -173,14 +210,19 @@ void loop() {
 	}
 	if (error == true) {
 		// pokud už žádné ze světel namá chybu, není už potřeba chybu zobrazovat
-		if ((error_front_low == false) && (error_front_high == false) && (error_rear == false)) {
+		if ((error_front_low == false) && (error_front_high == false) && (error_rear == false) && (error_battery == false)) {
 			error = false;
 		}
 	}
 	if (error == true) {
 		showError();
 	} else {
-		noLEDs();
+		if (voltage_show_count > 0) {
+			showVoltage();
+			voltage_show_count--;
+		} else {
+			noLEDs();
+		}
 	}
 	if (frontOn() == true) {
 		debounceFront();
@@ -283,17 +325,31 @@ void strobo() {
 // debouncing tlačítka a přepínání potkávací/dálkové
 void debounceFront() {
 	if (digitalRead(FRONT_BUTTON) == LOW) {
-		debounce_count++;
-		if (debounce_count == DEBOUNCE_TOP) {
+		debounce_front_count++;
+		if (debounce_front_count == DEBOUNCE_TOP) {
 			front_low_enable = !front_low_enable;
 #ifdef DEBUG
 			Serial.println("Front low/high switch.");
 #endif
-		} else if (debounce_count > 100) {
-			debounce_count = 100;
+		} else if (debounce_front_count > 100) {
+			debounce_front_count = 100;
 		}
 	} else {
-		debounce_count = 0;
+		debounce_front_count = 0;
+	}
+}
+
+// debouncing tlačítka pro zobrazení napětí baterky
+void debounceVoltage() {
+	if (digitalRead(BATTERY_BUTTON) == LOW) {
+		debounce_voltage_count++;
+		if (debounce_voltage_count == DEBOUNCE_TOP) {
+			voltage_show_count = VOLTAGE_SHOW_TOP;
+		} else if (debounce_voltage_count > 100) {
+			debounce_voltage_count = 100;
+		}
+	} else {
+		debounce_voltage_count = 0;
 	}
 }
 
@@ -373,6 +429,11 @@ void showError() {
 		Serial.flush();
 		delay(100);
 	}
+	if (error_battery == true) {
+		Serial.println("Low battery.");
+		Serial.flush();
+		delay(100);
+	}
 #endif
 	if (error_count <= ERROR_ON) {
 		if (error_front_low == true) {
@@ -383,6 +444,9 @@ void showError() {
 		}
 		if (error_rear == true) {
 			digitalWrite(REAR_LED, HIGH);
+		}
+		if (error_battery == true) {
+			digitalWrite(BATTERY_LED, HIGH);
 		}
 	} else {
 		noLEDs();
@@ -400,4 +464,78 @@ void noLEDs() {
 	digitalWrite(LED_2, LOW);
 	digitalWrite(LED_3, LOW);
 	digitalWrite(LED_4, LOW);
+}
+
+void showVoltage() {
+	// použít pole a for cyklus by neuškodilo, ale má to pro takhle malé pole smysl?...
+#ifdef DEBUG
+	Serial.print("Voltage: ");
+	Serial.println(voltage);
+	Serial.print("Battery level: ");
+#endif
+	if (voltage >= BATTERY_LEVEL_0) {
+		digitalWrite(LED_0, HIGH);
+#ifdef DEBUG
+	Serial.print("I");
+#endif
+	} else {
+		digitalWrite(LED_0, LOW);
+	}
+	if (voltage >= BATTERY_LEVEL_1) {
+		digitalWrite(LED_1, HIGH);
+#ifdef DEBUG
+	Serial.print("I");
+#endif
+	} else {
+		digitalWrite(LED_1, LOW);
+	}
+	if (voltage >= BATTERY_LEVEL_2) {
+		digitalWrite(LED_2, HIGH);
+#ifdef DEBUG
+	Serial.print("I");
+#endif
+	} else {
+		digitalWrite(LED_2, LOW);
+	}
+	if (voltage >= BATTERY_LEVEL_3) {
+		digitalWrite(LED_3, HIGH);
+#ifdef DEBUG
+	Serial.print("I");
+#endif
+	} else {
+		digitalWrite(LED_3, LOW);
+	}
+	if (voltage >= BATTERY_LEVEL_4) {
+		digitalWrite(LED_4, HIGH);
+#ifdef DEBUG
+	Serial.print("I");
+#endif
+	} else {
+		digitalWrite(LED_4, LOW);
+	}
+#ifdef DEBUG
+	Serial.println();
+#endif
+}
+
+// měření napětí baterky
+void measureVoltage() {
+	voltage_measure_count++;
+	if (voltage_measure_count >= VOLTAGE_MEASURE_TOP) {
+		analogRead(BATTERY_MEASURE);
+		voltage = analogRead(BATTERY_MEASURE);
+		if (voltage < BATTERY_LEVEL_0) {
+			error = true;
+			error_battery = true;
+		} else {
+			error_battery = false;
+		}
+		voltage_measure_count = 0;
+#ifdef DEBUG
+		Serial.println("Measuring battery");
+		Serial.print("Voltage: ");
+		Serial.println(voltage);
+		Serial.flush();
+#endif
+	}
 }

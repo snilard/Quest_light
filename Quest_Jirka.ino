@@ -9,6 +9,9 @@ Určeno pro Arduino Micro
 #include <avr/sleep.h>
 #include <avr/wdt.h>
 
+//#define DEBUG
+
+
 // enable pin potkávacího světla
 #define FRONT_LOW_ENABLE 0
 // měřící pin k potkávacímu světlu
@@ -95,9 +98,15 @@ void setup() {
 	pinMode(BACK_SWITCH, INPUT_PULLUP);
 	pinMode(BREAK_SWITCH, INPUT_PULLUP);
 	
+#ifndef DEBUG
 	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 	WDT_init();
+#endif
 	analogReference(INTERNAL);
+#ifdef DEBUG
+	Serial.begin(19200);
+	Serial.println("Init done.");
+#endif
 }
 
 void loop() {
@@ -169,7 +178,12 @@ void loop() {
 		digitalWrite(REAR_ENABLE, LOW);
 		rear_on = false;
 	}
+#ifdef DEBUG
+	Serial.flush();
+	delay(100);
+#else
 	enterSleep();
+#endif
 }
 
 // Vrací true, pokud je sepnutý spínač předního světla
@@ -229,6 +243,9 @@ void debounceFront() {
 		debounce_count++;
 		if (debounce_count == DEBOUNCE_TOP) {
 			front_low_enable = !front_low_enable;
+#ifdef DEBUG
+			Serial.println("Front low/high switch.");
+#endif
 		} else if (debounce_count > 100) {
 			debounce_count = 100;
 		}
@@ -271,9 +288,25 @@ boolean lightFault(int pin) {
 	analogRead(pin);
 	int current = analogRead(pin);
 	if (current > CURRENT_TOP) {
+#ifdef DEBUG
+		Serial.print("Current on pin ");
+		Serial.print(pin);
+		Serial.print(": ");
+		Serial.println(current);
+		Serial.flush();
+		delay(100);
+#endif
 		return true;
 	}
 	if (current < CURRENT_BUTTOM) {
+#ifdef DEBUG
+		Serial.print("Current on pin ");
+		Serial.print(pin);
+		Serial.print(": ");
+		Serial.println(current);
+		Serial.flush();
+		delay(100);
+#endif
 		return true;
 	}
 	return false;
@@ -281,5 +314,21 @@ boolean lightFault(int pin) {
 
 // ukazuje nastalou chybu
 void showError() {
-	
+#ifdef DEBUG
+	if (error_front_low == true) {
+		Serial.println("Front low error.");
+		Serial.flush();
+		delay(100);
+	}
+	if (error_front_high == true) {
+		Serial.println("Front high error.");
+		Serial.flush();
+		delay(100);
+	}
+	if (error_rear == true) {
+		Serial.println("Rear error.");
+		Serial.flush();
+		delay(100);
+	}
+#endif
 }

@@ -50,6 +50,14 @@ Určeno pro Arduino Micro
 // počet intervalů po kolika se bere tlačítko jako sepnuté
 #define DEBOUNCE_TOP 3
 
+// povolené maximum na měřících rezistorech driverů
+// 0,29V / 2,56V * 1024
+#define CURRENT_TOP 116
+// povolené minimum na měřících rezistorech driverů
+// 0,21V / 2,56V * 1024
+#define CURRENT_BUTTOM 84
+
+
 
 // čítač blinkrů
 byte blink_count = 0;
@@ -62,6 +70,18 @@ byte debounce_count = 0;
 
 // true, pokud má svítit potkávačka, false pokud dálkové
 boolean front_low_enable = true;
+
+// nastaveno na true, pokud má příslušné světlo svítit
+boolean front_low_on = false;
+boolean front_high_on = false;
+boolean rear_on = false;
+
+// true, pokud je v nějakém světle chyba
+boolean error = false;
+// true, pokud je v příslušném světle chyba
+boolean error_front_low = false;
+boolean error_front_high = false;
+boolean error_rear = false;
 
 void setup() {
 	pinMode(FRONT_LOW_ENABLE, OUTPUT);
@@ -77,24 +97,65 @@ void setup() {
 	
 	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 	WDT_init();
+	analogReference(INTERNAL);
 }
 
 void loop() {
 	blink();
 	debounceFront();
+	// celé ošetření chyb by se dalo napsat pomocí jedné 8-mi bitové proměnné a bitových operací
+	// a bylo by to výrazně efektivnější, ale takhle pomocí těch booleanů mi to přijde takové
+	// mnohem pochopitelnější
+	if (front_low_on == true) {
+		if (lightFault(FRONT_LOW_MEASURE) == true) {
+			error = true;
+			error_front_low = true;
+		} else {
+			error_front_low = false;
+		}
+	}
+	if (front_high_on == true) {
+		if (lightFault(FRONT_HIGH_MEASURE) == true) {
+			error = true;
+			error_front_high = true;
+		} else {
+			error_front_high = false;
+		}
+	}
+	if (rear_on == true) {
+		if (lightFault(REAR_MEASURE) == true) {
+			error = true;
+			error_rear = true;
+		} else {
+			error_rear = false;
+		}
+	}
+	if (error == true) {
+		if ((error_front_low == false) && (error_front_high == false) && (error_rear == false)) {
+			error = false;
+		} else {
+			showError();
+		}
+	}
 	if (frontOn() == true) {
 		if (front_low_enable == true) {
 			digitalWrite(FRONT_LOW_ENABLE, HIGH);
 			digitalWrite(FRONT_HIGH_ENABLE, LOW);
+			front_low_on = true;
+			front_high_on = false;
 		} else {
 			digitalWrite(FRONT_LOW_ENABLE, LOW);
 			digitalWrite(FRONT_HIGH_ENABLE, HIGH);
+			front_low_on = false;
+			front_high_on = true;
 		}
 	} else if (stroboOn() == true) {
 		strobo();
 	} else {
 		digitalWrite(FRONT_LOW_ENABLE, LOW);
 		digitalWrite(FRONT_HIGH_ENABLE, LOW);
+		front_low_on = false;
+		front_high_on = false;
 	}
 	if (breakOn() == true) {
 		digitalWrite(REAR_INTENSITY, HIGH);
@@ -103,8 +164,10 @@ void loop() {
 	}
 	if (rearOn() == true) {
 		digitalWrite(REAR_ENABLE, HIGH);
+		rear_on = true;
 	} else {
 		digitalWrite(REAR_ENABLE, LOW);
+		rear_on = false;
 	}
 	enterSleep();
 }
@@ -146,10 +209,13 @@ void blink() {
 // blikání strobo
 void strobo() {
 	digitalWrite(FRONT_LOW_ENABLE, LOW);
+	front_low_on = false;
 	if (strobo_count <= STROBO_ON) {
 		digitalWrite(FRONT_HIGH_ENABLE, HIGH);
+		front_high_on = true;
 	} else {
 		digitalWrite(FRONT_HIGH_ENABLE, LOW);
+		front_high_on = false;
 		if (strobo_count >= STROBO_TOP) {
 			strobo_count = 0;
 		}
@@ -198,4 +264,22 @@ void WDT_init(void) {
 	WDTCSR = (1<<WDCE)|(1<<WDIE)|(1<<WDE);
 	//enable global interrupts
 	sei();
+}
+
+// vrací true pokud světlo na příslušením pinu nefunguje, jak má.
+boolean lightFault(int pin) {
+	analogRead(pin);
+	int current = analogRead(pin);
+	if (current > CURRENT_TOP) {
+		return true;
+	}
+	if (current < CURRENT_BUTTOM) {
+		return true;
+	}
+	return false;
+}
+
+// ukazuje nastalou chybu
+void showError() {
+	
 }

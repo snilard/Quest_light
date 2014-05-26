@@ -7729,7 +7729,7 @@ Source: www.kingbright.com</description>
 <part name="P+6" library="supply1" deviceset="+5V" device=""/>
 <part name="P+8" library="supply1" deviceset="+5V" device=""/>
 <part name="R23" library="rcl" deviceset="R-EU_" device="0309/10" value="10k"/>
-<part name="R24" library="rcl" deviceset="R-EU_" device="0309/10" value="110k"/>
+<part name="R24" library="rcl" deviceset="R-EU_" device="0309/10" value="43k"/>
 <part name="C4" library="rcl" deviceset="C-EU" device="050-024X044" value="100n"/>
 <part name="GND19" library="supply1" deviceset="GND" device=""/>
 <part name="P+9" library="supply1" deviceset="VCC" device=""/>

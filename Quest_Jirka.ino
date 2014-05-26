@@ -222,11 +222,12 @@ void loop() {
 	} else {
 		if (voltage_show_count > 0) {
 			showVoltage();
-			voltage_show_count--;
 		} else {
 			noLEDs();
 		}
 	}
+	if (voltage_show_count > 0) {
+		voltage_show_count--;
 	if (frontOn() == true) {
 		debounceFront();
 		if (front_low_enable == true) {

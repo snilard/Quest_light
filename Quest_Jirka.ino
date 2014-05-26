@@ -8,6 +8,7 @@ Určeno pro Arduino Micro
 
 #include <avr/sleep.h>
 #include <avr/wdt.h>
+#include <avr/power.h>
 
 //#define DEBUG
 
@@ -95,6 +96,8 @@ Určeno pro Arduino Micro
 #define BATTERY_LEVEL_2 871 // 11,55 V
 #define BATTERY_LEVEL_3 888 // 11,77 V
 #define BATTERY_LEVEL_4 924 // 12,24 V
+// bezpečnostní napětí
+#define BATTERY_EMERGENCY 680 // 9 V
 
 
 // čítač blinkrů
@@ -156,8 +159,9 @@ void setup() {
 	pinMode(LED_3, OUTPUT);
 	pinMode(LED_4, OUTPUT);
 	
-#ifndef DEBUG
+	
 	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+#ifndef DEBUG
 	WDT_init();
 #else
 	Serial.begin(19200);
@@ -512,6 +516,11 @@ void showVoltage() {
 	} else {
 		digitalWrite(LED_4, LOW);
 	}
+	if (voltage < BATTERY_EMERGENCY) {
+		digitalWrite(LED_0, HIGH);
+		digitalWrite(LED_2, HIGH);
+		digitalWrite(LED_4, HIGH);
+	}
 #ifdef DEBUG
 	Serial.println();
 #endif
@@ -523,7 +532,23 @@ void measureVoltage() {
 	if (voltage_measure_count >= VOLTAGE_MEASURE_TOP) {
 		analogRead(BATTERY_MEASURE);
 		voltage = analogRead(BATTERY_MEASURE);
-		if (voltage < BATTERY_LEVEL_0) {
+		if (voltage < BATTERY_EMERGENCY) {
+#ifdef DEBUG
+			Serial.println("Battery emergency");
+#endif
+			noLEDs();
+			wdt_disable();
+			digitalWrite(FRONT_LOW_ENABLE, LOW);
+			digitalWrite(FRONT_HIGH_ENABLE, LOW);
+			digitalWrite(REAR_ENABLE, LOW);
+			digitalWrite(REAR_INTENSITY, LOW);
+			digitalWrite(BLINK_PIN, LOW);
+			showVoltage();
+			delay(5000);
+			noLEDs();
+			power_all_disable();
+			enterSleep();
+		} else if (voltage < BATTERY_LEVEL_0) {
 			error = true;
 			error_battery = true;
 		} else {

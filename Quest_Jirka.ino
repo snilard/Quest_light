@@ -89,13 +89,12 @@ Určeno pro Arduino Micro
 #define CURRENT_BUTTOM 84
 
 // jednotlivé úrovně napětí baterky
-// TODO dopsat správné hodnoty
-#define BATTERY_LEVEL_0 100
-#define BATTERY_LEVEL_1 120
-#define BATTERY_LEVEL_2 140
-#define BATTERY_LEVEL_3 160
-#define BATTERY_LEVEL_4 180
-
+// napětí baterky / 53 * 10 / 2,56 * 1024
+#define BATTERY_LEVEL_0 792 // 10,50 V
+#define BATTERY_LEVEL_1 860 // 11,39 V 
+#define BATTERY_LEVEL_2 871 // 11,55 V
+#define BATTERY_LEVEL_3 888 // 11,77 V
+#define BATTERY_LEVEL_4 924 // 12,24 V
 
 
 // čítač blinkrů

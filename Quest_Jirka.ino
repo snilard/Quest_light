@@ -228,6 +228,7 @@ void loop() {
 	}
 	if (voltage_show_count > 0) {
 		voltage_show_count--;
+	}
 	if (frontOn() == true) {
 		debounceFront();
 		if (front_low_enable == true) {

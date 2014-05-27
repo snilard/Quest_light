@@ -42,7 +42,7 @@ Určeno pro Arduino Micro
 // měřící pin na napětí baterky
 #define BATTERY_MEASURE A3
 // tlačítko pro zobrazení napětí
-#define BATTERY_BUTTON 12
+#define BATTERY_BUTTON A5
 // informační LED
 #define LED_0 10
 #define LED_1 11
